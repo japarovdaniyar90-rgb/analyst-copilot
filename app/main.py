@@ -12,6 +12,7 @@ from telegram.ext import (
 
 from config import Config
 from state import users
+from app.storage.projects import create_project
 
 
 MAIN_MENU = [
@@ -62,13 +63,15 @@ async def message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         and users[user_id]["state"] == "waiting_description"
     ):
 
-        users[user_id]["description"] = text
+        project = create_project(text)
         users[user_id]["state"] = "created"
 
         await update.message.reply_text(
             f"✅ Проект создан!\n\n"
-            f"Описание:\n{text}"
-        )
+            f"ID: {project['id']}\n"
+            f"Название: {project['title']}\n"
+            f"Статус: {project['status']}"
+)
 
         return
 
