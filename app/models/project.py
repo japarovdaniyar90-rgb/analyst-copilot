@@ -3,6 +3,8 @@ from enum import Enum
 
 from pydantic import BaseModel, Field
 
+from app.models.document import Document
+
 
 class ProjectStatus(str, Enum):
     DRAFT = "Draft"
@@ -14,4 +16,4 @@ class Project(BaseModel):
     description: str
     status: ProjectStatus
     created_at: datetime
-    documents: list[str] = Field(default_factory=list)
+    documents: list[Document] = Field(default_factory=list)

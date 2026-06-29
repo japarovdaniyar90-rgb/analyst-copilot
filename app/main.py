@@ -6,6 +6,7 @@ from telegram.ext import (
     filters,
 )
 
+from app.bot.document_handlers import document_message
 from app.bot.handlers import callback_query, message, start
 from app.config import Config
 
@@ -20,6 +21,7 @@ def main() -> None:
 
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CallbackQueryHandler(callback_query))
+    app.add_handler(MessageHandler(filters.Document.ALL, document_message))
     app.add_handler(
         MessageHandler(
             filters.TEXT & ~filters.COMMAND,

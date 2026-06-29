@@ -1,18 +1,19 @@
 from telegram import Update
 from telegram.ext import ContextTypes
 
+from app.bot.formatters import format_project_list, format_project_workspace
 from app.bot.keyboards import (
     CALLBACK_PROJECT_OPEN,
     CALLBACK_WORKSPACE_ACTION,
     MAIN_MENU_BUTTONS,
     MY_PROJECTS_BUTTON,
     NEW_PROJECT_BUTTON,
+    WORKSPACE_UPLOAD_DOCUMENT,
     main_menu_keyboard,
     project_selection_keyboard,
     project_workspace_keyboard,
 )
 from app.bot.states import UserState
-from app.models.project import Project
 from app.services.project_service import project_service
 
 
@@ -48,7 +49,7 @@ async def message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         user_data.pop("state", None)
         projects = project_service.list_projects()
         await update.message.reply_text(
-            _format_project_list(projects),
+            format_project_list(projects),
             reply_markup=project_selection_keyboard(projects) if projects else None,
         )
         return
@@ -89,7 +90,7 @@ async def callback_query(
         return
 
     if data.startswith(CALLBACK_WORKSPACE_ACTION):
-        await _handle_workspace_action_callback(update)
+        await _handle_workspace_action_callback(update, context)
         return
 
     if query.message is not None:
@@ -117,14 +118,23 @@ async def _handle_project_open_callback(
 
     context.user_data["active_project_id"] = project.id
     await query.edit_message_text(
-        _format_project_workspace(project),
+        format_project_workspace(project),
         reply_markup=project_workspace_keyboard(),
     )
 
 
-async def _handle_workspace_action_callback(update: Update) -> None:
+async def _handle_workspace_action_callback(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
+) -> None:
     query = update.callback_query
-    if query is None or query.message is None:
+    if query is None or query.message is None or context.user_data is None:
+        return
+
+    data = query.data or ""
+    action = data.removeprefix(CALLBACK_WORKSPACE_ACTION)
+    if action == WORKSPACE_UPLOAD_DOCUMENT:
+        await _handle_document_upload_request(update, context)
         return
 
     await query.message.reply_text(
@@ -132,63 +142,30 @@ async def _handle_workspace_action_callback(update: Update) -> None:
     )
 
 
-async def _reply_feature_in_development(update: Update) -> None:
-    await update.message.reply_text(
-        "🚧 Эта функция пока находится в разработке."
+async def _handle_document_upload_request(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
+) -> None:
+    query = update.callback_query
+    if query is None or query.message is None or context.user_data is None:
+        return
+
+    project_id = context.user_data.get("active_project_id")
+    if not isinstance(project_id, int):
+        await query.message.reply_text(
+            "❌ Сначала выберите проект."
+        )
+        return
+
+    context.user_data["state"] = UserState.WAITING_DOCUMENT_UPLOAD
+    await query.message.reply_text(
+        "📄 Отправьте документ в формате PDF, DOCX, TXT или MD."
     )
 
 
-def _format_project_list(projects: list[Project]) -> str:
-    if not projects:
-        return (
-            "📂 У вас пока нет проектов.\n\n"
-            "Создайте первый проект с помощью кнопки:\n"
-            "📝 Новый проект"
-        )
-
-    lines = ["📂 Мои проекты"]
-    for index, project in enumerate(projects, start=1):
-        lines.extend(
-            [
-                "",
-                f"{_format_number(index)} {project.title}",
-                f"{_status_icon(project.status.value)} {project.status.value}",
-            ]
-        )
-
-    return "\n".join(lines)
-
-
-def _format_number(number: int) -> str:
-    numbers = {
-        1: "1️⃣",
-        2: "2️⃣",
-        3: "3️⃣",
-        4: "4️⃣",
-        5: "5️⃣",
-        6: "6️⃣",
-        7: "7️⃣",
-        8: "8️⃣",
-        9: "9️⃣",
-        10: "🔟",
-    }
-    return numbers.get(number, f"{number}.")
-
-
-def _status_icon(status: str) -> str:
-    icons = {
-        "Draft": "🟡",
-        "Interview": "🟢",
-    }
-    return icons.get(status, "⚪")
-
-
-def _format_project_workspace(project: Project) -> str:
-    return (
-        f"📁 {project.title}\n\n"
-        f"Статус: {project.status.value}\n"
-        f"Документов: {len(project.documents)}\n\n"
-        "Выберите действие:"
+async def _reply_feature_in_development(update: Update) -> None:
+    await update.message.reply_text(
+        "🚧 Эта функция пока находится в разработке."
     )
 
 

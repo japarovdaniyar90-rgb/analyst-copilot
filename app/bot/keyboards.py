@@ -9,14 +9,14 @@ MY_PROJECTS_BUTTON = "📂 Мои проекты"
 CALLBACK_PROJECT_OPEN = "project:open:"
 CALLBACK_WORKSPACE_ACTION = "workspace:action:"
 
-WORKSPACE_UPLOAD_BRD = "upload_brd"
+WORKSPACE_UPLOAD_DOCUMENT = "upload_document"
 WORKSPACE_AI_ANALYSIS = "ai_analysis"
 WORKSPACE_REQUIREMENTS = "requirements"
 WORKSPACE_DIAGRAMS = "diagrams"
 WORKSPACE_SETTINGS = "settings"
 
 WORKSPACE_ACTIONS = [
-    ("📄 Загрузить BRD", WORKSPACE_UPLOAD_BRD),
+    ("📄 Загрузить документ", WORKSPACE_UPLOAD_DOCUMENT),
     ("🧠 AI Анализ", WORKSPACE_AI_ANALYSIS),
     ("📝 Требования", WORKSPACE_REQUIREMENTS),
     ("📊 Диаграммы", WORKSPACE_DIAGRAMS),
