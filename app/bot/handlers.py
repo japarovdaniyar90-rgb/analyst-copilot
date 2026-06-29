@@ -2,10 +2,14 @@ from telegram import Update
 from telegram.ext import ContextTypes
 
 from app.bot.keyboards import (
+    CALLBACK_PROJECT_OPEN,
+    CALLBACK_WORKSPACE_ACTION,
     MAIN_MENU_BUTTONS,
     MY_PROJECTS_BUTTON,
     NEW_PROJECT_BUTTON,
     main_menu_keyboard,
+    project_selection_keyboard,
+    project_workspace_keyboard,
 )
 from app.bot.states import UserState
 from app.models.project import Project
@@ -43,7 +47,10 @@ async def message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if text == MY_PROJECTS_BUTTON:
         user_data.pop("state", None)
         projects = project_service.list_projects()
-        await update.message.reply_text(_format_project_list(projects))
+        await update.message.reply_text(
+            _format_project_list(projects),
+            reply_markup=project_selection_keyboard(projects) if projects else None,
+        )
         return
 
     if text in MAIN_MENU_BUTTONS:
@@ -64,6 +71,65 @@ async def message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         return
 
     await _reply_feature_in_development(update)
+
+
+async def callback_query(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
+) -> None:
+    query = update.callback_query
+    if query is None or context.user_data is None:
+        return
+
+    await query.answer()
+
+    data = query.data or ""
+    if data.startswith(CALLBACK_PROJECT_OPEN):
+        await _handle_project_open_callback(update, context, data)
+        return
+
+    if data.startswith(CALLBACK_WORKSPACE_ACTION):
+        await _handle_workspace_action_callback(update)
+        return
+
+    if query.message is not None:
+        await query.message.reply_text("Неизвестное действие.")
+
+
+async def _handle_project_open_callback(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
+    data: str,
+) -> None:
+    query = update.callback_query
+    if query is None or query.message is None or context.user_data is None:
+        return
+
+    project_id = _parse_callback_project_id(data)
+    if project_id is None:
+        await query.message.reply_text("Проект не найден.")
+        return
+
+    project = project_service.get_project(project_id)
+    if project is None:
+        await query.message.reply_text("Проект не найден.")
+        return
+
+    context.user_data["active_project_id"] = project.id
+    await query.edit_message_text(
+        _format_project_workspace(project),
+        reply_markup=project_workspace_keyboard(),
+    )
+
+
+async def _handle_workspace_action_callback(update: Update) -> None:
+    query = update.callback_query
+    if query is None or query.message is None:
+        return
+
+    await query.message.reply_text(
+        "🚧 Функция находится в разработке."
+    )
 
 
 async def _reply_feature_in_development(update: Update) -> None:
@@ -115,3 +181,20 @@ def _status_icon(status: str) -> str:
         "Interview": "🟢",
     }
     return icons.get(status, "⚪")
+
+
+def _format_project_workspace(project: Project) -> str:
+    return (
+        f"📁 {project.title}\n\n"
+        f"Статус: {project.status.value}\n"
+        f"Документов: {len(project.documents)}\n\n"
+        "Выберите действие:"
+    )
+
+
+def _parse_callback_project_id(data: str) -> int | None:
+    project_id = data.removeprefix(CALLBACK_PROJECT_OPEN)
+    if not project_id.isdigit():
+        return None
+
+    return int(project_id)

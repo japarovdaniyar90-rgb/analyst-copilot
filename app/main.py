@@ -1,11 +1,12 @@
 from telegram.ext import (
     Application,
+    CallbackQueryHandler,
     CommandHandler,
     MessageHandler,
     filters,
 )
 
-from app.bot.handlers import message, start
+from app.bot.handlers import callback_query, message, start
 from app.config import Config
 
 
@@ -18,6 +19,7 @@ def main() -> None:
     app = Application.builder().token(token).build()
 
     app.add_handler(CommandHandler("start", start))
+    app.add_handler(CallbackQueryHandler(callback_query))
     app.add_handler(
         MessageHandler(
             filters.TEXT & ~filters.COMMAND,

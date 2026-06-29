@@ -23,6 +23,9 @@ class ProjectService:
     def list_projects(self) -> list[Project]:
         return projects.get_all()
 
+    def get_project(self, project_id: int) -> Project | None:
+        return projects.get(project_id)
+
     def _next_project_id(self) -> int:
         self._last_project_id += 1
         return self._last_project_id
