@@ -2,9 +2,11 @@ from telegram import ReplyKeyboardMarkup
 
 
 NEW_PROJECT_BUTTON = "📝 Новый проект"
+MY_PROJECTS_BUTTON = "📂 Мои проекты"
 
 MAIN_MENU = [
     [NEW_PROJECT_BUTTON],
+    [MY_PROJECTS_BUTTON],
     ["📄 Проверить документ"],
     ["📊 Диаграммы"],
     ["⚙️ Настройки", "❓ Помощь"],

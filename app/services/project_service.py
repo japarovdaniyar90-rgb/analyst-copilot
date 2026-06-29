@@ -20,6 +20,9 @@ class ProjectService:
 
         return projects.save(project)
 
+    def list_projects(self) -> list[Project]:
+        return projects.get_all()
+
     def _next_project_id(self) -> int:
         self._last_project_id += 1
         return self._last_project_id
