@@ -1,27 +1,21 @@
-projects = {}
-
-last_project_id = 0
+from app.models.project import Project
 
 
-def create_project(description: str):
+_projects: dict[int, Project] = {}
 
-    global last_project_id
 
-    last_project_id += 1
-
-    project = {
-        "id": last_project_id,
-        "title": description[:40],
-        "description": description,
-        "status": "Draft",
-        "documents": [],
-    }
-
-    projects[last_project_id] = project
-
+def save(project: Project) -> Project:
+    _projects[project.id] = project
     return project
 
 
-def get_projects():
+def get(project_id: int) -> Project | None:
+    return _projects.get(project_id)
 
-    return list(projects.values())
+
+def get_all() -> list[Project]:
+    return list(_projects.values())
+
+
+def delete(project_id: int) -> bool:
+    return _projects.pop(project_id, None) is not None

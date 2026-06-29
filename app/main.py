@@ -1,88 +1,15 @@
-from telegram import (
-    Update,
-    ReplyKeyboardMarkup,
-)
 from telegram.ext import (
     Application,
     CommandHandler,
-    ContextTypes,
     MessageHandler,
     filters,
 )
 
-from config import Config
-from state import users
-from app.storage.projects import create_project
+from app.bot.handlers import message, start
+from app.config import Config
 
 
-MAIN_MENU = [
-    ["📝 Новый проект"],
-    ["📄 Проверить документ"],
-    ["📊 Диаграммы"],
-    ["⚙️ Настройки", "❓ Помощь"],
-]
-
-
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-
-    keyboard = ReplyKeyboardMarkup(
-        MAIN_MENU,
-        resize_keyboard=True,
-    )
-
-    await update.message.reply_text(
-        "👋 Привет, Данияр!\n\n"
-        "Я AI SRS Assistant.\n\n"
-        "Выберите действие:",
-        reply_markup=keyboard,
-    )
-
-
-async def message(update: Update, context: ContextTypes.DEFAULT_TYPE):
-
-    text = update.message.text
-    user_id = update.effective_user.id
-
-    # Создание нового проекта
-    if text == "📝 Новый проект":
-
-        users[user_id] = {
-            "state": "waiting_description"
-        }
-
-        await update.message.reply_text(
-            "✍️ Опишите задачу одним сообщением.\n\n"
-            "Например:\n"
-            "Добавить смену номера телефона клиента."
-        )
-        return
-
-    # Ожидаем описание
-    if (
-        user_id in users
-        and users[user_id]["state"] == "waiting_description"
-    ):
-
-        project = create_project(text)
-        users[user_id]["state"] = "created"
-
-        await update.message.reply_text(
-            f"✅ Проект создан!\n\n"
-            f"ID: {project['id']}\n"
-            f"Название: {project['title']}\n"
-            f"Статус: {project['status']}"
-)
-
-        return
-
-    # Пока остальные кнопки не реализованы
-    await update.message.reply_text(
-        "🚧 Эта функция пока находится в разработке."
-    )
-
-
-def main():
-
+def main() -> None:
     token = Config.TELEGRAM_TOKEN
 
     if not token:
@@ -91,7 +18,6 @@ def main():
     app = Application.builder().token(token).build()
 
     app.add_handler(CommandHandler("start", start))
-
     app.add_handler(
         MessageHandler(
             filters.TEXT & ~filters.COMMAND,
@@ -99,8 +25,7 @@ def main():
         )
     )
 
-    print("✅ Bot started")
-
+    print("Bot started")
     app.run_polling()
 
 

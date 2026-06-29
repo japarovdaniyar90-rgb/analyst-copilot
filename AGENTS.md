@@ -6,7 +6,7 @@ Before implementing any task, ALWAYS read:
 
 1. docs/PRD.md
 2. docs/ARCHITECTURE.md
-3. docs/AI_DEVELOPMENT_GUIDE.md
+3. docs/ENGINEERING_GUIDE.md
 4. docs/BACKLOG.md
 5. docs/tasks/*.md (current task)
 

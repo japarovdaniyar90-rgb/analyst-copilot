@@ -2,7 +2,7 @@
 
 - [x] DEV-001 Telegram Bot
 - [x] DEV-002 Main Menu
-- [ ] DEV-003 Create Project
+- [x] DEV-003 Create Project
 - [ ] DEV-004 Project List
 - [ ] DEV-005 Project Card
 - [ ] DEV-006 Rename Project
