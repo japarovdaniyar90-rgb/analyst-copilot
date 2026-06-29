@@ -3,6 +3,8 @@ import os
 from dotenv import load_dotenv
 from telegram import Update
 from telegram.ext import Application, CommandHandler, ContextTypes
+from config import Config
+
 
 load_dotenv()
 
@@ -17,8 +19,8 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 def main():
-    token = os.getenv("TELEGRAM_TOKEN")
 
+    token = Config.TELEGRAM_TOKEN
     if not token:
         raise ValueError("TELEGRAM_TOKEN не найден в .env")
 
